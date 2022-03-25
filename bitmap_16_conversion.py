@@ -26,7 +26,7 @@ d = ImageDraw.Draw(img)
 #d.text((1,1), "P",1,  align='center', font = fnt)
 
 text1 = "A---\nA---"
-text10 = "ABC\nZZZ"
+text10 = "asdfghj"
 text2 = "oZ\nk\na\ny\no\nk\na\ny"
 text3 = "1\n2\n3\n4\n5\n6\n7\n7\n9\n1\n2\n3\n4\n5\n6\n7\n7\n9\n1\n2\n3\n4\n5\n6\n7\n7\n9"
 
@@ -132,8 +132,10 @@ for r in range(0,len(splitData)):
     bufferString = bufferString + splitData[r]
     
     
-    
-little_hex = bytearray.fromhex(bufferString)
+try:    
+    little_hex = bytearray.fromhex(bufferString)
+except:
+    little_hex = bytearray.fromhex(bufferString[:-1])
 #little_hex.reverse()
 print("Byte array format:", little_hex)
 
