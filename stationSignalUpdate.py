@@ -75,7 +75,7 @@ class SignalBitmapDisplay:
         font = fontPath[language][fontStyle]
         
         
-        img = Image.new('L', (180, 20))
+        img = Image.new('L', (200, 20))
         d = ImageDraw.Draw(img)
         fnt = ImageFont.truetype(font, fontSize) #max 12 fontsize
         
@@ -242,18 +242,19 @@ class SignalBitmapDisplay:
     
      
     
-# ip = "192.168.1.93";
-# port = 9999
+ip = "192.168.1.93";
+port = 9999
 
-# fontSize = 10
-# overFlowDisplay = True
-# display = True
-# language = "English" 
-# fontStyle = "poppinsNormal"   
+fontSize = 10
+overFlowDisplay = True
+display = True
+language = "English" 
+fontStyle = "poppinsNormal"   
 
-# counter = ": 02"
-# stationName = "Jawaharlal Nehru Statdium"
-# stationName2 = "Mandi House"
+counter = ": 10"
+counter = "   "
+stationName = "Jawaharlal Nehru Statdium"
+stationName2 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
     
 # #ip, port, fontSize, display = False, fontStyle= None, language = None,counter, stationName, overFlowDisplay = False,         
@@ -290,9 +291,9 @@ class SignalBitmapDisplay:
 
 
           
-# # x = SignalBitmapDisplay(ip = ip, port = port, fontSize = 10, overFlowDisplay = True, display = True, language = "Hindi", fontStyle = "poppinsNormal" , counter = counter, stationName = stationName2)    
+x = SignalBitmapDisplay(ip = ip, port = port, fontSize = 10, overFlowDisplay = True, display = True, language = "Hindi", fontStyle = "poppinsNormal" , counter = counter, stationName = stationName2)    
 
-
+x.output()
     
     
     
@@ -300,6 +301,6 @@ class SignalBitmapDisplay:
     
     
     
-ImageFont.truetype()    
+    
     
     

@@ -15,17 +15,27 @@ import crc16
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning) 
 import PySimpleGUI as sg
+import threading
+import logging
+import os
+logging.basicConfig(filename="Logs2.log", format='%(asctime)s %(message)s', filemode='w')
 
+logger = logging.getLogger()
+
+logger.setLevel(logging.ERROR)
+
+logger.error("OverFlow Data Map Right")
 
 
 class SignalBitmapDisplay:      
     
-    def __init__(self, ip, port, fontSize, counter, stationName, display = False, fontStyle= None, language = None, overFlowDisplay = False,   **kwargs):
+    def __init__(self, ip, port, fontSize, counter, stationName, sysFont , display = False, fontStyle= None, language = None, overFlowDisplay = False,   **kwargs):
         self.ip = ip
         self.port = port
         #self.text = text
         self.fontSize = fontSize
-        self.display = display    
+        self.display = display 
+        self.sysFont = sysFont
         self.fontStyle = fontStyle
         self.language = language
         self.counter = counter
@@ -36,7 +46,7 @@ class SignalBitmapDisplay:
     def output(self):
         
         
-        ip, port, fontSize, overFlowDisplay, fontStyle, language, counter, stationName, display = self.ip, self.port,  self.fontSize, self.overFlowDisplay, self.fontStyle, self.language, self.counter, self.stationName , self.display  
+        ip, port, fontSize, overFlowDisplay, fontStyle, language, counter, stationName, display, sysFont = self.ip, self.port,  self.fontSize, self.overFlowDisplay, self.fontStyle, self.language, self.counter, self.stationName , self.display, self.sysFont  
         
 
     
@@ -69,15 +79,20 @@ class SignalBitmapDisplay:
         
         
         
-        print("\nIP = ", ip, "\nPort = ", port, "\nText = ", stationName,  "Counter ", counter,"\nFont = ", fontPath[language][fontStyle], "\nFontSize = ", fontSize, "\n")
+        # print("\nIP = ", ip, "\nPort = ", port, "\nText = ", stationName,  "Counter ", counter,"\nFont = ", fontPath[language][fontStyle], "\nFontSize = ", fontSize, "\n")
         
         
-        font = fontPath[language][fontStyle]
+        if language == None and fontStyle == None:
+            font = sysFont
+        else:
+            font = fontPath[language][fontStyle]
         
         
-        img = Image.new('L', (180, 20))
+        
+        img = Image.new('L', (200, 20))
         d = ImageDraw.Draw(img)
         fnt = ImageFont.truetype(font, fontSize) #max 12 fontsize
+
         
         text = stationName 
                 
@@ -132,7 +147,7 @@ class SignalBitmapDisplay:
         
         
         
-        imgOverFlowDataString = Image.new('L', (480, 20))
+        imgOverFlowDataString = Image.new('L', (480, 25))
         dx = ImageDraw.Draw(imgOverFlowDataString)
         fnt = ImageFont.truetype(font, fontSize) #max 12 fontsize
         
@@ -141,19 +156,19 @@ class SignalBitmapDisplay:
         dx.text((2,3), text , 1, font = fnt)
         
         #sns.heatmap(imgOverFlowDataString)
-        
+        #logger.error("OverFlow Data Map Right")
         
         imgOverFlowData = np.array(imgOverFlowDataString)
         
-        setVariable = True
+        setVariableRight = True
         
         for overFlow in imgOverFlowData[:, 162:]:
             for checkOverFlow in overFlow:
                 if checkOverFlow == True:
                     print("\n\n Data is Overflowing \n\n")
-                    setVariable = False
-                    break
-            if setVariable == False and overFlowDisplay == True:
+                    setVariableRight = False
+                    break 
+            if setVariableRight == False and overFlowDisplay == True:
                 j = Image.fromarray(imgOverFlowData[:, 162:])
                 x = j.transpose(Image.FLIP_LEFT_RIGHT)
                 x = j.transpose(Image.ROTATE_90)
@@ -161,9 +176,35 @@ class SignalBitmapDisplay:
                 x = x.transpose(Image.ROTATE_90)
                 x = x.transpose(Image.ROTATE_90)
                 y = np.array(x)
-                sns.heatmap(y).set(title='OverFlow Data Map')
-                sg.Popup('Opps!', 'Data is OverFlowing')
+                sns.heatmap(y).set(title='OverFlow Data Map Right')
+                plt.figure()
+                #sg.Popup('Opps!', 'Data is OverFlowing')
+                logger.error("OverFlow Data Map Right")
                 break
+        
+        setVariableLower = True    
+        for overFlow in imgOverFlowData[17:]:
+            for checkOverFlow in overFlow:
+                if checkOverFlow == True:
+                    print("\n\n Data is Overflowing \n\n")
+                    setVariableLower = False
+                    break 
+            if setVariableLower == False and overFlowDisplay == True:
+                j = Image.fromarray(imgOverFlowData[17:])
+                x = j.transpose(Image.FLIP_LEFT_RIGHT)
+                x = j.transpose(Image.ROTATE_90)
+                x = x.transpose(Image.ROTATE_90)
+                x = x.transpose(Image.ROTATE_90)
+                x = x.transpose(Image.ROTATE_90)
+                y = np.array(x)
+                sns.heatmap(y).set(title='OverFlow Data Map Lower')
+                #plt.figure()
+                #sg.Popup('Opps!', 'Data is OverFlowing')
+                logger.error("OverFlow Data Map Lower")
+                break
+
+        
+        
                     
             
         
@@ -231,6 +272,9 @@ class SignalBitmapDisplay:
         except:
             little_hex = bytearray.fromhex(bufferString[:-1])
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        
+        print("Ip  ", ip, "data")
+        
         s.connect((ip, port))
         s.send(little_hex)
         s.close()
@@ -238,68 +282,59 @@ class SignalBitmapDisplay:
             
     
     
-    
-    
+class BitmapSignalingMultiSender:
+    def __init__(self, ip, port, fontSize, counter, stationName, sysFont , display = False, fontStyle= None, language = None, overFlowDisplay = False, **kwargs):
+        self.ip = ip
+        self.port = port
+        #self.text = text
+        self.fontSize = fontSize
+        self.display = display 
+        self.sysFont = sysFont
+        self.fontStyle = fontStyle
+        self.language = language
+        self.counter = counter
+        self.stationName = stationName
+        self.overFlowDisplay = overFlowDisplay
+       
+        
+        
+    def output(self):
+        ip, port, fontSize, overFlowDisplay, fontStyle, language, counter, stationName, display, sysFont= self.ip, self.port,  self.fontSize, self.overFlowDisplay, self.fontStyle, self.language, self.counter, self.stationName , self.display, self.sysFont
+     
+        for ips in range(0, len(ip)):
+            print(ips)
+            x = SignalBitmapDisplay(ip = ip[ips], port = port, fontSize = fontSize, overFlowDisplay = overFlowDisplay, display = display, language = language, fontStyle = language , counter = counter[ips], stationName = stationName[ips], sysFont = sysFont)
+            threading.Thread(target=x.output(), name=f'{ips}')
+            print("Main thread name: {}".format(threading.current_thread().name))
+            
+    def getFontList():
+        print( os.listdir("C://windows/fonts"))       
      
     
-# ip = "192.168.1.93";
-# port = 9999
+ip = "192.168.1.93";
+port = 9999
 
-# fontSize = 10
-# overFlowDisplay = True
-# display = True
-# language = "English" 
-# fontStyle = "poppinsNormal"   
+fontSize = 12
+overFlowDisplay = True
+display = True
+language = "English" 
+fontStyle = "poppinsNormal"   
 
-# counter = ": 02"
-# stationName = "Jawaharlal Nehru Statdium"
-# stationName2 = "Mandi House"
+counter = ": 10"
+stationName2 = "Jawaharlal Nehru Statdium"
+stationName = "ABCDEFGHIJKLMNOPQRTSU"
 
-    
-# #ip, port, fontSize, display = False, fontStyle= None, language = None,counter, stationName, overFlowDisplay = False,         
-
-# jnlHindi = "नेहरु स्टेडियम"
-# mndHouseHindi = ""
-
-# stationList = ["Jawaharlal Nehru Statdium ghjuhgfghjikjuhgfghjiuhguytgfgyhut", jnlHindi , "Mandi House", mndHouseHindi]
-
-# lineIp = ["192.168.1.93", "192.168.1.94"]
+stationName2 = "Amar Akbar Antony"
 
 
-# for data in range(0, 2):
-#     stName = stationList[data]
-    
-#     for counter in range(1,6):
-        
-#         counterDataM = ": 0{}".format(counter)
-        
-#         x = SignalBitmapDisplay(ip = lineIp[0], port = port, fontSize = 10, overFlowDisplay = False, display = False, language = "English", fontStyle = "poppinsNormal" , counter = counterDataM, stationName = stationList[0])
-#         x.output()
-        
-#     for counter in range(1,6):
-        
-#         counterData = ": 0{}".format(counter)
-        
-        
-#         y = SignalBitmapDisplay(ip = lineIp[0], port = port, fontSize = 10, overFlowDisplay = False, display = False, language = "Hindi", fontStyle = "poppinsNormal" , counter = counterData, stationName = stationList[1])
-#         y.output()
-        
-         
-        
-        
 
+Iplist = ["192.168.1.93","192.168.1.94","192.168.1.95"]
+datalist = ["Ahmad", "कभी लगता है इस जिन्दगी में खुशियां बेशुमार है,", stationName ,"Rochak"]
+counter = [": 10", ": 50", ": 20"]
+print(BitmapSignalingMultiSender.getFontList())
 
-          
-# # x = SignalBitmapDisplay(ip = ip, port = port, fontSize = 10, overFlowDisplay = True, display = True, language = "Hindi", fontStyle = "poppinsNormal" , counter = counter, stationName = stationName2)    
+  
+c = BitmapSignalingMultiSender(ip = Iplist, port = port, fontSize = fontSize, overFlowDisplay = False, display = False, language = None, fontStyle = None , counter = counter, stationName = datalist, sysFont = "NirmalaB")
 
+c.output()
 
-    
-    
-    
-    
-    
-    
-    
-ImageFont.truetype()    
-    
-    
